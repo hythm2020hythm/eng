@@ -1,0 +1,1252 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz App</title>
+    <style>
+        body {
+            background-color: black;
+            color: white;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        #score-counter {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 10px;
+            background-color: #333;
+            border-bottom-right-radius: 10px;
+            color: white;
+            z-index: 999;
+        }
+
+        #quiz-container {
+            max-width: 600px;
+            margin: auto;
+            padding: 60px 20px 20px; /* تم تعديل ال padding ليضمن عدم تغطية الصورة */
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            background-color: rgba(255, 255, 255, 0.1);
+            position: relative; /* تمت إضافة position: relative; للسماح لـ #score-counter بالتحكم فيه */
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+            color: white;
+            background-color: #2196F3;
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        button {
+            background-color: #2196F3;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0c0c0c;
+        }
+
+        #timer {
+            margin-bottom: 10px;
+        }
+
+        #result-container {
+            margin-top: 20px;
+            display: none;
+        }
+
+        .result-text {
+            margin-bottom: 10px;
+        }
+
+        .correct {
+            background-color: green;
+            color: white;
+        }
+
+        .incorrect {
+            background-color: red;
+            color: white;
+        }
+
+        /* CSS for displaying images to fit the screen */
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="score-counter">Score: <span id="score">0</span></div>
+
+    <div id="quiz-container">
+        <img id="question-image" src="" alt="Question Image">
+        <div id="choices"></div>
+        <button onclick="checkAnswer()">Submit Answer</button>
+        <p id="timer"></p>
+    </div>
+
+    <div id="result-container">
+        <h2>Quiz Result</h2>
+        <p class="result-text" id="result"></p>
+        <div id="correct-answers"></div>
+        <button id="retryBtn" style="display: none;" onclick="retryQuiz()">Retry Quiz</button>
+    </div>
+
+    <script>
+        var currentQuestion = 0;
+        var score = 0;
+        var timeLeft = 3000; // تحديد عدد الثواني
+        var timerInterval;
+
+        var quizData = [
+
+
+        
+          
+        {
+        question: "What is one of France's most iconic landmarks?",
+        choices: ["The Colosseum", "The Great Wall", "The Eiffel Tower", "Christ the Redeemer"],
+        correctAnswer: "The Eiffel Tower"
+    },
+    {
+        question: "Which Italian landmark is known for its tilt?",
+        choices: ["The Leaning Tower of Pisa", "The Colosseum", "The Great Wall", "The Taj Mahal"],
+        correctAnswer: "The Leaning Tower of Pisa"
+    },
+    {
+        question: "What is China's significant historical and cultural monument?",
+        choices: ["The Taj Mahal", "The Great Wall of China", "The Acropolis", "The Sun Temple"],
+        correctAnswer: "The Great Wall of China"
+    },
+    {
+        question: "Which Indian landmark is considered a cultural marvel?",
+        choices: ["Khajuraho", "The Great Wall of China", "The Leaning Tower of Pisa", "Christ the Redeemer"],
+        correctAnswer: "Khajuraho"
+    },
+    {
+        question: "What is Japan known for in spring?",
+        choices: ["Kyoto's Temples and Cherry Blossoms", "The Eiffel Tower", "The Colosseum", "The Great Wall of China"],
+        correctAnswer: "Kyoto's Temples and Cherry Blossoms"
+    },
+    {
+        question: "What is Brazil's distinctive landmark in Rio de Janeiro?",
+        choices: ["The Great Wall of China", "The Kremlin", "Christ the Redeemer", "The Colosseum"],
+        correctAnswer: "Christ the Redeemer"
+    },
+    {
+        question: "Which Russian city is home to St. Petersburg's Cathedral and the Kremlin?",
+        choices: ["Moscow", "Athens", "Rio de Janeiro", "Kyoto"],
+        correctAnswer: "Moscow"
+    },
+    {
+        question: "What is Greece's iconic landmark in Athens?",
+        choices: ["The Sun Temple", "The Leaning Tower of Pisa", "The Acropolis", "Kyoto's Temples"],
+        correctAnswer: "The Acropolis"
+    },
+    {
+        question: "Which Mexican site is famous for ...?",
+        choices: ["The Colosseum", "The Sun Temple", "The Eiffel Tower", "The Taj Mahal"],
+        correctAnswer: "The Sun Temple"
+    },
+    {
+        question: "What is the Statue of Liberty a recognized symbol of?",
+        choices: ["Greece", "China", "The United States", "India"],
+        correctAnswer: "The United States"
+    },
+    {
+        question: "What is a sacred site for Muslims in Saudi Arabia?",
+        choices: ["The Nile River", "The Kaaba and the Mecca Mosque", "The Sun Temple", "The Taj Mahal"],
+        correctAnswer: "The Kaaba and the Mecca Mosque"
+    },
+    {
+        question: "Which wonders of the ancient world are located in Egypt?",
+        choices: ["The Colosseum", "The Leaning Tower of Pisa", "The Pyramids", "The Acropolis"],
+        correctAnswer: "The Pyramids"
+    },
+    {
+        question: "What is vital to Egyptian civilization and holds economic and cultural importance?",
+        choices: ["The Sun Temple", "The Nile River", "The Great Wall of China", "The Eiffel Tower"],
+        correctAnswer: "The Nile River"
+    },
+  {
+    "question": "What is the capital of Egypt?",
+    "choices": ["Cairo", "Alexandria", "Luxor"],
+    "correctAnswer": "Cairo"
+  },
+  {
+    "question": "Which city is the capital of Saudi Arabia?",
+    "choices": ["Riyadh", "Jeddah", "Mecca"],
+    "correctAnswer": "Riyadh"
+  },
+  {
+    "question": "What is the capital of France?",
+    "choices": ["Paris", "Marseille", "Lyon"],
+    "correctAnswer": "Paris"
+  },
+  {
+    "question": "Which city is the capital of Italy?",
+    "choices": ["Rome", "Milan", "Naples"],
+    "correctAnswer": "Rome"
+  },
+  {
+    "question": "What is the capital of China?",
+    "choices": ["Beijing", "Shanghai", "Guangzhou"],
+    "correctAnswer": "Beijing"
+  },
+  {
+    "question": "Which city is the capital of India?",
+    "choices": ["New Delhi", "Mumbai", "Bangalore"],
+    "correctAnswer": "New Delhi"
+  },
+  {
+    "question": "What is the capital of Japan?",
+    "choices": ["Tokyo", "Osaka", "Kyoto"],
+    "correctAnswer": "Tokyo"
+  },
+  {
+    "question": "Which city is the capital of Brazil?",
+    "choices": ["Brasília", "Rio de Janeiro", "São Paulo"],
+    "correctAnswer": "Brasília"
+  },
+  {
+    "question": "What is the capital of Russia?",
+    "choices": ["Moscow", "St. Petersburg", "Novosibirsk"],
+    "correctAnswer": "Moscow"
+  },
+  {
+    "question": "Which city is the capital of Greece?",
+    "choices": ["Athens", "Thessaloniki", "Heraklion"],
+    "correctAnswer": "Athens"
+  },
+  {
+    "question": "What is the capital of Mexico?",
+    "choices": ["Mexico City", "Guadalajara", "Monterrey"],
+    "correctAnswer": "Mexico City"
+  },
+  {
+    "question": "Which city is the capital of the United States?",
+    "choices": ["Washington, D.C.", "New York City", "Los Angeles"],
+    "correctAnswer": "Washington, D.C."
+  },
+  {
+    "question": "What is the capital of the United Kingdom?",
+    "choices": ["London", "Manchester", "Birmingham"],
+    "correctAnswer": "London"
+  },
+  {
+    "question": "Which city is the capital of Germany?",
+    "choices": ["Berlin", "Hamburg", "Munich"],
+    "correctAnswer": "Berlin"
+  },
+  {
+    "question": "What is the capital of Canada?",
+    "choices": ["Ottawa", "Toronto", "Vancouver"],
+    "correctAnswer": "Ottawa"
+  },
+  {
+    "question": "Which city is the capital of Australia?",
+    "choices": ["Canberra", "Sydney", "Melbourne"],
+    "correctAnswer": "Canberra"
+  },
+  {
+    "question": "What is the administrative capital of South Africa?",
+    "choices": ["Pretoria", "Johannesburg", "Cape Town"],
+    "correctAnswer": "Pretoria"
+  },
+  {
+    "question": "Which city is the capital of Argentina?",
+    "choices": ["Buenos Aires", "Córdoba", "Rosario"],
+    "correctAnswer": "Buenos Aires"
+  },
+  {
+    "question": "What is the capital of Turkey?",
+    "choices": ["Ankara", "Istanbul", "Izmir"],
+    "correctAnswer": "Ankara"
+  },
+  {
+    "question": "Which city is the capital of Iran?",
+    "choices": ["Tehran", "Isfahan", "Shiraz"],
+    "correctAnswer": "Tehran"
+  },
+  {
+    "question": "Largest Ocean",
+    "choices": ["Atlantic Ocean", "Indian Ocean", "Southern Ocean", "Arctic Ocean", "Pacific Ocean"],
+    "correctAnswer": "Pacific Ocean"
+  },
+  {
+    "question": "Smallest Ocean",
+    "choices": ["Atlantic Ocean", "Indian Ocean", "Southern Ocean", "Arctic Ocean", "Pacific Ocean"],
+    "correctAnswer": "Southern Ocean"
+  },
+  {
+    "question": "Largest Continent",
+    "choices": ["North America", "South America", "Europe", "Asia", "Africa", "Australia"],
+    "correctAnswer": "Asia"
+  },
+  {
+    "question": "Longest River",
+    "choices": ["Nile River", "Amazon River", "Yangtze River", "Mississippi-Missouri River System", "Yenisei-Angara-Irkutsk"],
+    "correctAnswer": "Amazon River"
+  },
+  {
+    "question": "Largest Lake",
+    "choices": ["Caspian Sea", "Superior", "Victoria", "Huron", "Michigan", "Tanganyika"],
+    "correctAnswer": "Caspian Sea"
+  },
+    {
+        "question": "What is the second planet from the sun?",
+        "choices": ["Earth", "Venus", "Mars"],
+        "correctAnswer": "Venus"
+    },
+    {
+        "question": "Which planet is known for its reddish color and attracts scientific interest for the possibility of past or present life?",
+        "choices": ["Jupiter", "Saturn", "Mars"],
+        "correctAnswer": "Mars"
+    },
+    {
+        "question": "What is the largest planet in our solar system, known for its gaseous rings?",
+        "choices": ["Jupiter", "Saturn", "Uranus"],
+        "correctAnswer": "Jupiter"
+    },
+    {
+        "question": "Which planet is famous for its beautiful rings and has an extensive ring system?",
+        "choices": ["Saturn", "Uranus", "Neptune"],
+        "correctAnswer": "Saturn"
+    },
+    {
+        "question": "What is the smallest and closest planet to the sun?",
+        "choices": ["Venus", "Mercury", "Earth"],
+        "correctAnswer": "Mercury"
+    },
+    {
+        "question": "Which planet is characterized by its large tilt and faint rings?",
+        "choices": ["Uranus", "Neptune", "Jupiter"],
+        "correctAnswer": "Uranus"
+    },
+    {
+        "question": "Which planet has an atmosphere composed mainly of hydrogen and helium?",
+        "choices": ["Venus", "Mars", "Neptune"],
+        "correctAnswer": "Neptune"
+    },
+    {
+        "question": "Which planet is the only known celestial body to support life?",
+        "choices": ["Earth", "Venus", "Mars"],
+        "correctAnswer": "Earth"
+    },
+ {
+
+
+ 
+"question": " Can I have . . . . . . . . . . . . orange , please ? It looks fresh . ",
+"choices": ["has", "two", "an"],
+"correctAnswer": "an"
+
+}, { 
+
+
+"question": "  what company do you work for  ",
+"choices": ["a managerb", "an engineerc", "Sony Electronics"],
+"correctAnswer": "Sony Electronics"
+
+
+}, { 
+
+
+
+"question": " What ……….. is it? It  s half past nine ",
+"choices": ["time", "price", "sale"],
+"correctAnswer": "time"
+
+
+}, { 
+"question": " She ate ……….. apple this morning. ",
+"choices": ["a", "an", "is"],
+"correctAnswer": "an"
+
+
+}, { 
+"question": " - Hyundai is not a Japanese company. It s a ……………. company. ",
+"choices": ["Korean", "from Korea", "Korea"],
+"correctAnswer": "Korean"
+
+
+}, { 
+"question": " Hello. …………….. I speak to the manager, please? I m sorry. Heis in a meeting now. ",
+"choices": ["Am", "Could", "Was"],
+"correctAnswer": "Could"
+
+
+}, { 
+"question": " - The ……….. month of the year is January. ",
+"choices": ["first", "second", "third"],
+"correctAnswer": "first"
+
+
+}, { 
+"question": " - I d like to talk to ………… in the sales department, please ",
+"choices": ["something", "- same thing", "someone"],
+"correctAnswer": "someone"
+
+
+}, { 
+"question": " Accountant ",
+"choices": ["محاسب", "ممثل", "مهندس معمارى"],
+"correctAnswer": "محاسب"
+
+
+}, { 
+"question": " Actor  ",
+"choices": ["محاسب", "ممثل", "مهندس معمارى"],
+"correctAnswer": "ممثل"
+
+
+}, { 
+"question": " Architect ",
+"choices": ["محاسب", "ممثل", "مهندس معمارى"],
+
+"correctAnswer": "مهندس معمارى"
+
+
+}, { 
+"question": " Banker مصرفي ",
+"choices": ["صح", "خطا", "ـ"],
+"correctAnswer": "صح"
+
+
+}, { 
+"question": " Barber حلاق ",
+"choices": ["صح", "خطا", "ـ"],
+"correctAnswer": "صح"
+
+}, {
+
+"question": "Yesterday, our family ------------------- to our new house in Alexandria",
+"choices": ["moved", "moves", "moving"],
+"correctAnswer": "moved"
+}, {
+
+"question": "Ali ------------------- to Alexandria with his family last month.",
+"choices": ["drove", "drives", "drive"],
+"correctAnswer": "drove"
+
+
+}, {
+"question": "She didn t ------------------- the film yesterday.",
+"choices": ["sees", "see", "saw"],
+"correctAnswer": "see"
+
+
+}, {
+"question": "The children -------------------- their mother at home yesterday.",
+"choices": ["helped", "helps", "help"],
+"correctAnswer": "helped"
+
+
+}, {
+"question": "Beds, chairs and tables are",
+"choices": ["fruits", "vegetables", "furniture"],
+"correctAnswer": "furniture"
+
+
+}, {
+"question": "We use water for washing, cooking and",
+"choices": ["reading", "writing", "drinking"],
+"correctAnswer": "drinking"
+
+
+}, {
+
+
+
+"question": "The ------------------- is on the top of the house. ",
+"choices": ["roof", "kitchen", "cushion"],
+"correctAnswer": "roof"
+
+
+}, {
+
+
+
+"question": " Farmers grow a lot of",
+"choices": ["crops", "boxes", "books"],
+"correctAnswer": "crops"
+
+
+}, {
+
+
+
+"question": "She likes ---------------- about cooking",
+"choices": ["playing", "blogging", "drinking"],
+"correctAnswer": "blogging"
+
+
+}, {
+
+
+
+"question": "- ------------------- means related to living things and their environments. ",
+"choices": ["Ecological", "Brilliant", "Friendly"],
+"correctAnswer": "Ecological"
+
+
+}, {
+
+
+
+"question": " They live in a very nice -------------",
+"choices": ["tree", "star", "farmhouse"],
+"correctAnswer": "farmhouse"
+
+
+}, {
+
+
+
+"question": " I visited some ------------------ places with my family. It s really cool.",
+"choices": ["bad", "brilliant", "boring"],
+"correctAnswer": "brilliant"
+
+
+}, {
+
+
+
+"question": " We sleep in the",
+"choices": [" living room ", "bedroom", "kitchen"],
+"correctAnswer": "bedroom"
+
+
+}, {
+
+
+
+"question": "Take the ------------------- to get to the tenth floor. ",
+"choices": ["oven", "elevator", "closet"],
+"correctAnswer": "elevator"
+
+}, {
+
+
+"question": "Ancient Egyptians used ------------------ bricks to build houses. ",
+"choices": ["mud", "metal", "plastic"],
+"correctAnswer": "mud"
+}, {
+
+"question": "The room has a ------------------ on the roof to let air into it.",
+"choices": ["door", "vent", "gift"],
+"correctAnswer": "vent"
+}, {
+
+
+
+"question": " ---------------- the right, there is my bedroom. ",
+"choices": ["On", "In", "At"],
+"correctAnswer": "On"
+
+
+}, {
+
+"question": "- ....-------- the middle of the room, there is a desk.",
+"choices": ["On", "In", "At"],
+"correctAnswer": "In"
+
+
+
+}, {
+
+"question": "My mother uses a basket to --------------------- vegetables.",
+"choices": ["join", "store", "pain"],
+"correctAnswer": "store"
+
+
+
+}, {
+
+"question": "This movie isn t interesting. It s ----------------------.",
+"choices": ["brilliant", "funny", "boring"],
+"correctAnswer": "boring"
+
+
+
+}, {
+
+"question": "He is very clever. He always arrives at school ----------------- time. ",
+"choices": ["on", "to", "at"],
+"correctAnswer": "on"
+
+
+
+}, {
+
+"question": "It ----------------- rain yesterday.",
+"choices": ["doesn’t", "isn’t", "didn’t"],
+"correctAnswer": "didn’t"
+
+
+
+}, {
+
+"question": " She never tries to make friends. She’s very ----------------------.",
+"choices": ["unfriendly", "happy", "lucky"],
+"correctAnswer": "unfriendly"
+
+
+
+}, {
+
+"question": "He s very ------------------ because he missed the bus. ",
+"choices": ["unfair", "unkind", "unlucky"],
+"correctAnswer": "unlucky"
+
+
+
+}, {
+
+"question": "He --------------- all over Egypt last year. ",
+"choices": ["traveled", "travels", "traveling"],
+"correctAnswer": "traveled"
+
+
+
+}, {
+
+"question": "How ------------------- did you live in your old apartment?",
+"choices": ["time", "long", "tall"],
+"correctAnswer": "long"
+
+
+
+}, {
+
+"question": "- There are two bedrooms in our new ------------------------",
+"choices": ["school", "apartment", "kitchen"],
+"correctAnswer": "apartment"
+
+
+
+}, {
+
+"question": "Take the cake out of the -----------",
+"choices": ["oven", "shower", "television"],
+"correctAnswer": "oven"
+
+
+
+}, {
+
+"question": " I have a --------------------, can you help me",
+"choices": ["prize", "meal", "problem"],
+"correctAnswer": "problem"
+
+
+}, { 
+
+
+"question": "She had two ---------------------- of orange juice. ",
+"choices": ["pots", "glasses", "plates"],
+"correctAnswer": "glasses"
+
+
+}, { 
+
+
+
+
+"question": " The -------------------- is a small river. ",
+"choices": ["stream", "sea", "ocean"],
+"correctAnswer": "stream"
+
+
+
+
+
+}, { 
+
+
+
+
+"question": " Fruits are very useful for your ",
+"choices": ["water", "health", "science"],
+"correctAnswer": "health"
+
+
+}, { 
+
+
+
+
+"question": " Hatem can t see. He is ",
+"choices": ["strong", "hard", "blind"],
+"correctAnswer": "blind"
+
+}, { 
+
+
+
+
+"question": " Do you ---------------- a headache ",
+"choices": ["have", "having", "had"],
+"correctAnswer": "have"
+
+}, { 
+
+
+
+
+"question": " You should --------------------- between eight and nine hours.  ",
+"choices": ["sleep", "eat", "visit"],
+"correctAnswer": "sleep"
+
+}, { 
+
+
+
+
+"question": " We use the -------------------- to keep us from sunburn. ",
+"choices": ["headache", "pills", "sunscreen"],
+"correctAnswer": "sunscreen"
+
+}, { 
+
+
+
+
+"question": " Amira is feeling -----------------------. She has a headache.  ",
+"choices": ["unwell", "fine", "well"],
+"correctAnswer": "unwell"
+
+}, { 
+
+
+
+
+"question": " The ------------------ treats patients from all over the country.  ",
+"choices": ["hospital", "office", "club"],
+"correctAnswer": "hospital"
+
+}, { 
+
+
+
+
+"question": " Another word for “sick” is ",
+"choices": ["well", "staff", "patient"],
+"correctAnswer": "patient"
+
+}, { 
+
+
+
+
+"question": "   The ------------------- is a very dangerous animal ",
+"choices": ["rabbit", "monkey", "lion"],
+"correctAnswer": "lion"
+
+}, { 
+
+
+
+
+"question": " Adel is very -------------------, he helps all his friends.  ",
+"choices": ["friendly", "lazy", "angry"],
+"correctAnswer": "friendly"
+
+}, { 
+
+
+
+
+"question": " She ------------------- drive a car. She takes the bus.  ",
+"choices": ["can", "couldn’t", "can’t"],
+"correctAnswer": "can’t"
+
+
+}, { 
+
+"question": " A -------------------- swims in a group in the ocean. ",
+"choices": ["dolphin", "flamingo", "camel"],
+"correctAnswer": "dolphin"
+
+
+}, { 
+
+
+
+
+"question": " A ------------------ is a very big and strong cat. ",
+"choices": ["rat", "lion", "kangaroo"],
+"correctAnswer": "lion"
+
+
+
+
+
+}, { 
+
+
+
+
+"question": " My grandpa is a --------------------, he grows food for us. ",
+"choices": ["farm", "farmer", "farming"],
+"correctAnswer": "farmer"
+
+
+}, { 
+
+
+
+
+"question": " My uncle is a / an --------------  he likes to design unusual buildings ",
+"choices": ["doctor", "architect", "teacher"],
+"correctAnswer": "architect"
+
+}, { 
+
+
+
+
+"question": " He is a great --------------------. He swims really fast.  ",
+"choices": ["swimmer", "runner", "footballer"],
+"correctAnswer": "swimmer"
+
+}, { 
+
+
+
+
+"question": " - I return home ---------------------- the afternoon. ",
+"choices": ["on", "in", "at"],
+"correctAnswer": "in"
+
+}, { 
+
+
+
+
+"question": " Grandpa was born -------------------- 1950. ",
+"choices": ["on", "in", "at"],
+"correctAnswer": "in"
+
+}, { 
+
+
+
+
+"question": " Does our next class start ------------------ 2 pm? ",
+"choices": ["on", "in", "at"],
+"correctAnswer": "at"
+
+}, { 
+
+
+
+
+"question": " The ---------------- are examples of man-made resources. ",
+"choices": ["gold", "water", "shoes"],
+"correctAnswer": "shoes"
+
+}, { 
+
+
+
+
+"question": " I like -------------------- and chocolate ice cream ",
+"choices": ["vanilla", "suitcase", "basket"],
+"correctAnswer": "vanilla"
+
+}, { 
+
+
+
+
+"question": " You can travel by plane through the ",
+"choices": ["airport", "museum", "station"],
+"correctAnswer": "airport"
+
+}, { 
+
+
+
+
+"question": " You can swim in the ",
+"choices": ["swimming pool ", "park", "zoo"],
+"correctAnswer": "swimming pool "
+
+}, { 
+
+
+
+
+"question": " We go to the club -------------------- Saturdays ",
+"choices": ["on", "in", "at"],
+"correctAnswer": "on"
+
+
+
+}, {
+"question": "Roberta _____ from The United States.",
+"choices": ["are", "is", "am"],
+"correctAnswer": "is"
+}, {
+
+"question": "What s _____ name?",
+"choices": ["his", "him", "he"],
+"correctAnswer": "his"
+
+
+}, {
+
+
+
+"question": "My friend _____ in London.",
+"choices": ["living", "live", "lives"],
+"correctAnswer": "lives"
+
+
+
+
+
+
+
+
+}, {
+
+
+
+"question": "Where _____?",
+"choices": ["works Tom", "does Tom work", "Tom does work"],
+"correctAnswer": "does Tom work"
+
+
+
+}, {
+
+
+
+"question": "I _____ coffee.",
+"choices": ["no like", "not like", "don’t like"],
+"correctAnswer": "don’t like"
+
+
+
+}, {
+
+
+
+"question": "‘_____ to Australia, Ginny?   Yes  two years ago.”",
+"choices": ["Do you ever go", "Did you ever go", "Have you ever been"],
+"correctAnswer": "Have you ever been"
+
+
+
+}, {
+
+
+
+"question": "Tokyo is _____ city I ve ever lived in.",
+"choices": ["the biggest", "the most big", "the bigger"],
+"correctAnswer": "the biggest"
+
+
+
+}, {
+
+
+
+"question": "A vegetarian is someone _____ doesn t eat meat.",
+"choices": ["which", "whose", "who"],
+"correctAnswer": "who"
+
+
+
+}, {
+
+
+
+"question": "_____ these days.",
+"choices": ["I never a newspaper buy", "I never buy a newspaper", "Never I buy a newspaper"],
+"correctAnswer": "I never buy a newspaper"
+
+
+
+}, {
+
+
+
+"question": "I _____ watch TV tonight.",
+"choices": ["am", "going to", "am going to"],
+"correctAnswer": "am going to"
+
+
+
+}, {
+
+
+
+"question": "I wish I _____ more money!",
+"choices": ["have", "had", "would have"],
+"correctAnswer": "had"
+
+
+
+}, {
+
+
+
+"question": "_____ be famous one day?",
+"choices": ["Do you like to", "Would you like to", "Do you like"],
+"correctAnswer": "Would you like to"
+
+
+
+
+
+}
+,
+          {
+    "question": "To block the light to enter the room, we use:",
+    "choices": ["the blinds", "the curtains", "the rug", "the sofa"],
+    "correctAnswer": "the curtains"
+},
+          {
+    "question": "When an infection occurs, we use a mask.",
+    "choices": ["True", "False"],
+    "correctAnswer": "True"
+},
+      
+{
+        "question": "The element that controls human ",
+        "choices": ["Stomach", "Chest", "Head", "Brain"],
+        "correctAnswer": "Brain"
+    },
+    {
+        "question": "Brazil is famous  ",
+        "choices": ["To", "With", "For", "By"],
+        "correctAnswer": "For"
+    },
+    {
+        "question": "Mother takes the basket in the kitchen for...",
+        "choices": ["Rubbish", "Food", "Drop", "Clean"],
+        "correctAnswer": "Rubbish"
+    },
+    {
+        "question": "A knife is...",
+        "choices": ["Dull", "Cup", "Bowl", "Fork"],
+        "correctAnswer": "Dull"
+    },
+    {
+        "question": "Shoes are made  ",
+        "choices": ["To", "Of", "From", "With"],
+        "correctAnswer": "Of"
+    },
+    {
+        "question": "We don't eat chips  ",
+        "choices": ["Because", "But", "Not", "However"],
+        "correctAnswer": "Because"
+    },
+    {
+        "question": "Whose seat is this ",
+        "choices": ["Republic is seat", "Teacher", "Manager" ],
+        "correctAnswer": "Republic is seat"
+    },
+    {
+        "question": "We go to the carpenter...",
+        "choices": ["For", "With", "In", "To"],
+        "correctAnswer": "To"
+    },
+    {
+        "question": "I'm busy  ",
+        "choices": ["Because", "But", "Not", "However"],
+        "correctAnswer": "Because"
+    },
+    {
+        "question": "Pressure is high I  ",
+        "choices": ["Go", "Play", "Need", "Dream"],
+        "correctAnswer": "Need"
+    },
+  {
+    "question": "Someone who has a sick animal should call",
+    "choices": [
+        "the doctor",
+        "the nurse",
+        "the veterinarian"
+    ],
+    "correctAnswer": "the veterinarian"
+},
+  {
+    "question": "The one who donates blood is called a blood donor",
+    "choices": [
+        "correct",
+        "wrong answer"
+    ],
+    "correctAnswer": "correct"
+}
+
+
+
+
+        
+          
+
+        ];
+
+        // قم بترتيب الأسئلة بشكل عشوائي
+        shuffleArray(quizData);
+
+        function shuffleArray(array) {
+            for (var i = array.length - 1; i > 0; i--) {
+                var j = Math.floor(Math.random() * (i + 1));
+                var temp = array[i];
+                array[i] = array[j];
+                array[j] = temp;
+            }
+            return array;
+        }
+
+        function loadQuestion() {
+            var currentQuiz = quizData[currentQuestion];
+
+            var questionImageElement = document.getElementById('question-image');
+            var choicesElement = document.getElementById('choices');
+
+            if (currentQuiz.imageSrc) {
+                questionImageElement.src = currentQuiz.imageSrc; // تعيين مصدر الصورة
+                questionImageElement.style.display = 'block'; // عرض الصورة
+            } else {
+                questionImageElement.style.display = 'none'; // إخفاء الصورة إذا لم تكن متاحة
+            }
+
+            choicesElement.innerHTML = '';
+
+            // عرض السؤال كنص عادي إذا لم يكن هناك صورة
+            if (!currentQuiz.imageSrc) {
+                choicesElement.innerHTML += '<p>' + currentQuiz.question + '</p>';
+            }
+
+            for (var i = 0; i < currentQuiz.choices.length; i++) {
+                var choice = currentQuiz.choices[i];
+                choicesElement.innerHTML += '<label><input type="radio" name="choice" value="' + choice + '"> ' + choice + '</label>';
+            }
+
+            startTimer(); // بدء الموقت عند تحميل كل سؤال
+        }
+
+        function startTimer() {
+            timerInterval = setInterval(function () {
+                document.getElementById('timer').innerHTML = 'Time Left: ' + timeLeft + 's';
+
+                if (timeLeft === 0) {
+                    clearInterval(timerInterval);
+                    alert('Time is up!'); // عرض رسالة انتهاء الوقت
+                    showResult(); // عرض النتيجة النهائية عند انتهاء الوقت
+                } else {
+                    timeLeft--;
+                }
+            }, 1000);
+        }
+
+        function checkAnswer() {
+            var selectedOption = document.querySelector('input[name="choice"]:checked');
+            if (!selectedOption) {
+                alert('Please select an answer.');
+                return;
+            }
+
+            var userAnswer = selectedOption.value;
+            var currentQuiz = quizData[currentQuestion];
+
+            var choicesLabels = document.querySelectorAll('label');
+
+            for (var i = 0; i < choicesLabels.length; i++) {
+                if (currentQuiz.correctAnswer === currentQuiz.choices[i]) {
+                    choicesLabels[i].classList.add('correct');
+                } else {
+                    choicesLabels[i].classList.add('incorrect');
+                }
+            }
+
+            if (userAnswer === currentQuiz.correctAnswer) {
+                score++;
+                document.getElementById('score').textContent = score;
+            }
+
+            clearInterval(timerInterval); // قبل التحقق من الإجابة، قم بإيقاف الموقت
+
+            currentQuestion++;
+
+            if (currentQuestion < quizData.length) {
+                setTimeout(function () {
+                    loadQuestion();
+                    resetColors();
+                }, 3000);
+            } else {
+                showResult();
+            }
+        }
+
+        function showResult() {
+            var resultElement = document.getElementById('result');
+            var correctAnswersElement = document.getElementById('correct-answers');
+
+            resultElement.innerHTML = 'Your Score: ' + score + ' out of ' + quizData.length;
+
+            correctAnswersElement.innerHTML = '<h3>Correct Answers:</h3>';
+            for (var i = 0; i < quizData.length; i++) {
+                var q = quizData[i];
+                var imgSrc = q.imageSrc;
+                var imgElement = '<img src="' + imgSrc + '" alt="Question Image">';
+                correctAnswersElement.innerHTML += imgElement + '<strong>Q: ' + q.question + '</strong><br>A: ' + q.correctAnswer + '<br>';
+            }
+
+            document.getElementById('result-container').style.display = 'block';
+            document.getElementById('retryBtn').style.display = 'block';
+        }
+
+        function resetColors() {
+            var choicesLabels = document.querySelectorAll('label');
+            for (var i = 0; i < choicesLabels.length; i++) {
+                choicesLabels[i].classList.remove('correct', 'incorrect'); // إزالة الأنماط المضافة سابقًا
+            }
+        }
+
+        function retryQuiz() {
+            currentQuestion = 0;
+            score = 0;
+            timeLeft = 3000; // إعادة تعيين الوقت للقيمة الأصلية
+
+            // قم بترتيب الأسئلة بشكل عشوائي عند إعادة المحاولة
+            shuffleArray(quizData);
+
+            document.getElementById('score').textContent = score; // تحديث قيمة العداد إلى الصفر
+            loadQuestion();
+            resetColors();
+
+            document.getElementById('result-container').style.display = 'none';
+            document.getElementById('retryBtn').style.display = 'none';
+        }
+
+        loadQuestion();
+    </script>
+
+</body>
+
+</html>
